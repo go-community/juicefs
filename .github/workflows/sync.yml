@@ -59,10 +59,14 @@ jobs:
           mv juicefs-source/* $mount_point
           mv juicefs-source/.* $mount_point || true          
           mkdir jfs_sync_dir
-          ./juicefs sync  $mount_point jfs_sync_dir/
+          ./juicefs sync  $mount_point jfs_sync_dir/ --exclude '.accesslog' --exclude '.trash'
           mkdir rsync_dir
-          rsync  $mount_point rsync_dir/
+          rsync  $mount_point rsync_dir/ -exclude '.accesslog' --exclude '.trash'
           diff -ur jfs_sync_dir rsync_dir
+          if [ $? != 0 ]; then
+            echo "Fatal, juice sync result differs with rsync"
+            exit 1
+          fi
           ./juicefs umount $mount_point
 
       - name: Send Slack Notification
